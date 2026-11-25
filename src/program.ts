@@ -1,5 +1,6 @@
 import { Command, CommanderError } from 'commander';
 
+import { registerKeysCommand } from './commands/ota/keys.js';
 import { CliError } from './errors.js';
 import { type Output, processOutput } from './output.js';
 import { CLI_VERSION } from './version.js';
@@ -18,12 +19,13 @@ export function buildProgram(deps: ProgramDeps): Command {
     })
     .exitOverride();
 
-  program
+  const ota = program
     .command('ota')
     .description(
       'Live updates: publish signed JS bundles to your React Native apps'
     )
     .exitOverride();
+  registerKeysCommand(ota, deps.output);
 
   return program;
 }
