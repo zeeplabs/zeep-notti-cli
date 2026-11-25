@@ -233,6 +233,47 @@ describe('readHermesBytecodeVersion', () => {
     expect(await readHermesBytecodeVersion(join(hbcDir, `v${v}.hbc`))).toBe(v);
   });
 
+  it('accepts the magic c6 1f bc 03 c1 03 19 1f and reads the version after it', async () => {
+    await withTempDir(async (dir) => {
+      const path = join(dir, 'good.hbc');
+      await writeFile(
+        path,
+        Buffer.from([
+          0xc6, 0x1f, 0xbc, 0x03, 0xc1, 0x03, 0x19, 0x1f, 0x63, 0, 0, 0, 1, 2,
+        ])
+      );
+      expect(await readHermesBytecodeVersion(path)).toBe(99);
+    });
+  });
+
+  it('refuses a header whose magic does not match, even with a version', async () => {
+    await withTempDir(async (dir) => {
+      const path = join(dir, 'bad-magic.hbc');
+      await writeFile(
+        path,
+        Buffer.from([
+          0xc6, 0x1f, 0xbc, 0x03, 0xc1, 0x03, 0x19, 0x1e, 0x60, 0, 0, 0,
+        ])
+      );
+      await expect(readHermesBytecodeVersion(path)).rejects.toThrow(
+        'the header magic is c61fbc03c103191e, expected c61fbc03c103191f'
+      );
+    });
+  });
+
+  it('refuses a truncated file shorter than the header', async () => {
+    await withTempDir(async (dir) => {
+      const path = join(dir, 'truncated.hbc');
+      await writeFile(
+        path,
+        Buffer.from([0xc6, 0x1f, 0xbc, 0x03, 0xc1, 0x03, 0x19, 0x1f, 0x60])
+      );
+      await expect(readHermesBytecodeVersion(path)).rejects.toThrow(
+        'shorter than the 12-byte header'
+      );
+    });
+  });
+
   it('refuses a file that is not Hermes bytecode', async () => {
     await withTempDir(async (dir) => {
       const path = join(dir, 'plain.js');

@@ -170,19 +170,40 @@ async function runStep(
   }
 }
 
-/** Reads the bytecode version: a little-endian uint32 at bytes 8 to 11. */
+/** Hermes bytecode magic: bytes 0 to 7, the little-endian uint64 0x1F1903C103BC1FC6. */
+const HERMES_MAGIC = Buffer.from([
+  0xc6, 0x1f, 0xbc, 0x03, 0xc1, 0x03, 0x19, 0x1f,
+]);
+const HERMES_HEADER_BYTES = 12;
+
+/**
+ * Checks the Hermes magic, then reads the bytecode version: a little-endian
+ * uint32 at bytes 8 to 11.
+ */
 export async function readHermesBytecodeVersion(path: string): Promise<number> {
-  const header = Buffer.alloc(12);
+  const header = Buffer.alloc(HERMES_HEADER_BYTES);
   const file = await open(path, 'r');
   let bytesRead: number;
   try {
-    ({ bytesRead } = await file.read(header, 0, 12, 0));
+    ({ bytesRead } = await file.read(header, 0, HERMES_HEADER_BYTES, 0));
   } finally {
     await file.close();
   }
-  const version = bytesRead === 12 ? header.readUInt32LE(8) : 0;
+  if (bytesRead < HERMES_HEADER_BYTES) {
+    throw new CliError(
+      `${path} is not a Hermes bytecode bundle: the file is shorter than the ${HERMES_HEADER_BYTES}-byte header`
+    );
+  }
+  if (!header.subarray(0, HERMES_MAGIC.length).equals(HERMES_MAGIC)) {
+    throw new CliError(
+      `${path} is not a Hermes bytecode bundle: the header magic is ${header.subarray(0, 8).toString('hex')}, expected ${HERMES_MAGIC.toString('hex')}`
+    );
+  }
+  const version = header.readUInt32LE(8);
   if (version === 0) {
-    throw new CliError(`${path} is not a Hermes bytecode bundle`);
+    throw new CliError(
+      `${path} is not a Hermes bytecode bundle: bytecode version 0`
+    );
   }
   return version;
 }
