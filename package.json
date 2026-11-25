@@ -1,0 +1,62 @@
+{
+  "name": "@notti/cli",
+  "version": "0.1.0",
+  "description": "Notti command line: publish signed Live updates for React Native apps",
+  "type": "module",
+  "bin": {
+    "notti": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "del-cli dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "fixtures": "pnpm build && node scripts/generate-fixtures.mjs"
+  },
+  "keywords": [
+    "notti",
+    "react-native",
+    "live-updates",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeeplabs/zeep-notti-cli.git"
+  },
+  "author": "Zeep Tecnologia <opensource@zeeplabs.com.br> (https://github.com/zeeplabs)",
+  "license": "MIT",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "dependencies": {
+    "commander": "14.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.10.0",
+    "del-cli": "^7.0.0",
+    "eslint": "^10.15.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.7",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.74.0",
+    "vitest": "^4.1.12"
+  },
+  "packageManager": "pnpm@10.15.0",
+  "prettier": {
+    "quoteProps": "consistent",
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5",
+    "useTabs": false
+  }
+}

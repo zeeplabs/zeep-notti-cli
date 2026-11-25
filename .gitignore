@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+.DS_Store
+*.pem
+!fixtures/**/*.pem
+!test/fixtures/**/*.pem
