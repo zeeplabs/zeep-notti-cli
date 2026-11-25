@@ -1,11 +1,15 @@
 import { Command, CommanderError } from 'commander';
 
 import { registerKeysCommand } from './commands/ota/keys.js';
+import {
+  type ReleaseDeps,
+  registerReleaseCommand,
+} from './commands/ota/release.js';
 import { CliError } from './errors.js';
 import { type Output, processOutput } from './output.js';
 import { CLI_VERSION } from './version.js';
 
-export interface ProgramDeps {
+export interface ProgramDeps extends Partial<Omit<ReleaseDeps, 'output'>> {
   output: Output;
 }
 
@@ -26,6 +30,7 @@ export function buildProgram(deps: ProgramDeps): Command {
     )
     .exitOverride();
   registerKeysCommand(ota, deps.output);
+  registerReleaseCommand(ota, deps);
 
   return program;
 }

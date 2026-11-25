@@ -1,11 +1,15 @@
-import { copyFile, mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
 import { withTempDir } from '../../test/fixtures.js';
-import { writeProject } from '../../test/projects.js';
+import {
+  hbcDir,
+  stubRunner,
+  writeProject,
+  writeRnProject,
+} from '../../test/projects.js';
 import { CliError } from '../errors.js';
 import {
   type Platform,
@@ -15,67 +19,11 @@ import {
 } from './bundle.js';
 import { type Project, detectProject } from './project.js';
 
-const hbcDir = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'test',
-  'fixtures',
-  'hbc'
-);
-
-interface Call {
-  command: string;
-  args: string[];
-  cwd: string;
-}
-
-function stubRunner(
-  hbcVersion = 96,
-  exitCodes: number[] = []
-): {
-  runner: ProcessRunner;
-  calls: Call[];
-} {
-  const calls: Call[] = [];
-  const runner: ProcessRunner = {
-    run: async (command, args, cwd) => {
-      calls.push({ command, args, cwd });
-      const code = exitCodes[calls.length - 1] ?? 0;
-      const outIndex = args.indexOf('-out');
-      if (code === 0 && outIndex >= 0) {
-        await copyFile(
-          join(hbcDir, `v${hbcVersion}.hbc`),
-          args[outIndex + 1] as string
-        );
-      }
-      return code;
-    },
-  };
-  return { runner, calls };
-}
-
 async function fixtureProject(
   root: string,
   kind: 'bare' | 'expo'
 ): Promise<Project> {
-  const installed: Record<string, string> = { 'react-native': '0.83.0' };
-  if (kind === 'expo') {
-    installed.expo = '55.0.0';
-  } else {
-    installed['@react-native-community/cli'] = '20.0.0';
-  }
-  installed['hermes-compiler'] = '0.14.0';
-  await writeProject(root, {
-    dependencies: kind === 'expo' ? { expo: '~55.0.0' } : {},
-    installed,
-  });
-  for (const bin of ['osx-bin/hermesc', 'linux64-bin/hermesc']) {
-    const path = join(root, 'node_modules', 'hermes-compiler', 'hermesc', bin);
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, '');
-  }
-  return detectProject(root);
+  return detectProject(await writeRnProject(root, kind));
 }
 
 describe('buildBundle', () => {
