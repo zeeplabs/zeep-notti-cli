@@ -1,10 +1,12 @@
 // Regenerates fixtures/ota from the built CLI (run `pnpm fixtures`). The SDK
 // test suites consume these files; the CLI tests check they stay consistent.
+import { generateKeyPairSync } from 'node:crypto';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { gzipDeterministic, packTar, sha256Hex } from '../dist/ota/archive.js';
+import { signManifest } from '../dist/ota/manifest.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = join(root, 'fixtures', 'ota');
@@ -90,6 +92,34 @@ const files = validEntries
 await writeFile(
   join(outDir, 'files.json'),
   `${JSON.stringify({ bundle: 'index.android.bundle', files }, null, 2)}\n`
+);
+const { publicKey, privateKey } = generateKeyPairSync('ec', {
+  namedCurve: 'P-256',
+});
+const signed = signManifest(
+  {
+    appId: '9c1d2e3f-4a5b-4c6d-8e7f-0a1b2c3d4e5f',
+    platform: 'android',
+    channels: ['production', 'staging'],
+    runtimeVersion: '1.4.0',
+    hermesBytecodeVersion: 96,
+    bundle: 'index.android.bundle',
+    archive: {
+      sha256: index['valid.tar.gz'].sha256,
+      size: index['valid.tar.gz'].size,
+    },
+    files,
+    releaseId: '7d4f8a2e-1b3c-4e5f-9a6b-0c1d2e3f4a5b',
+    createdAt: new Date('2026-11-25T12:00:00Z'),
+  },
+  privateKey
+);
+await writeFile(join(outDir, 'manifest.json'), signed.manifestBytes);
+await writeFile(join(outDir, 'manifest.sig'), signed.signature);
+await writeFile(join(outDir, 'key_id.txt'), signed.keyId);
+await writeFile(
+  join(outDir, 'public_key.pem'),
+  publicKey.export({ type: 'spki', format: 'pem' })
 );
 await writeFile(
   join(outDir, 'index.json'),
