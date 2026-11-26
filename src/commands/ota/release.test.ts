@@ -1,11 +1,13 @@
 import {
   type KeyObject,
   createHash,
+  createPrivateKey,
   generateKeyPairSync,
   verify,
 } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -255,6 +257,133 @@ describe('notti ota release', () => {
         JSON.stringify(server.calls.map((c) => c.body?.toString()))
       ).not.toContain(s.privatePem.split('\n')[1]);
       expectNoSecrets(s, printed);
+    });
+  });
+
+  it('sends exactly these requests, with no private key, key path or key contents anywhere', async () => {
+    await withTempDir(async (dir) => {
+      const s = await setup(dir);
+      const server = mockServer(happyRoutes(s.keyId));
+
+      const { code } = await release(s, server.fetch, [
+        '--channel',
+        'staging',
+        '--rollout',
+        '25',
+        '--mandatory',
+      ]);
+
+      expect(code).toBe(0);
+      expect(server.calls).toHaveLength(4);
+      const [keys, upload, put, create] = server.calls as [
+        Recorded,
+        Recorded,
+        Recorded,
+        Recorded,
+      ];
+      const managementHeaders = {
+        authorization: `Bearer ${API_KEY}`,
+        accept: 'application/json',
+      };
+
+      expect(keys).toEqual({
+        url: `${API}/keys`,
+        method: 'GET',
+        headers: managementHeaders,
+        body: undefined,
+      });
+      expect(upload).toEqual({
+        url: `${API}/uploads`,
+        method: 'POST',
+        headers: managementHeaders,
+        body: undefined,
+      });
+      expect(put.url).toBe(UPLOAD_URL);
+      expect(put.method).toBe('PUT');
+      expect(put.headers).toEqual({ 'cache-control': 'private' });
+      expect(create.url).toBe(`${API}/releases`);
+      expect(create.method).toBe('POST');
+      expect(create.headers).toEqual({
+        ...managementHeaders,
+        'content-type': 'application/json',
+      });
+
+      const archive = put.body as Buffer;
+      const body = JSON.parse(create.body?.toString() ?? '{}');
+      const manifestBytes = Buffer.from(body.manifest, 'base64');
+      const manifest = JSON.parse(manifestBytes.toString());
+      expect(body).toEqual({
+        upload_id: '11111111-2222-4333-8444-555555555555',
+        manifest: manifestBytes.toString('base64'),
+        signature: body.signature,
+        key_id: s.keyId,
+        channel: 'staging',
+        rollout_percent: 25,
+        mandatory: true,
+      });
+      expect(
+        verify(
+          'sha256',
+          manifestBytes,
+          { key: s.publicKey, dsaEncoding: 'der' },
+          Buffer.from(body.signature, 'base64')
+        )
+      ).toBe(true);
+      expect(Object.keys(manifest).sort()).toEqual([
+        'app_id',
+        'archive',
+        'bundle',
+        'channels',
+        'created_at',
+        'files',
+        'format',
+        'hermes_bytecode_version',
+        'platform',
+        'release_id',
+        'runtime_version',
+      ]);
+      expect(manifest.archive).toEqual({
+        sha256: createHash('sha256').update(archive).digest('hex'),
+        size: archive.length,
+      });
+
+      const privateKey = createPrivateKey(s.privatePem);
+      const der = privateKey.export({ type: 'pkcs8', format: 'der' });
+      const scalar = Buffer.from(
+        privateKey.export({ format: 'jwk' }).d as string,
+        'base64url'
+      );
+      const secrets: Array<[string, Buffer]> = [
+        ['PEM', Buffer.from(s.privatePem)],
+        [
+          'PEM body',
+          Buffer.from(s.privatePem.split('\n').slice(1, -2).join('')),
+        ],
+        ['PKCS#8 DER', der],
+        ['DER base64', Buffer.from(der.toString('base64'))],
+        ['private scalar', scalar],
+        ['private scalar hex', Buffer.from(scalar.toString('hex'))],
+        ['private scalar base64url', Buffer.from(scalar.toString('base64url'))],
+        ['key path', Buffer.from(s.keyPath)],
+        ['key file name', Buffer.from('signing-key-location')],
+      ];
+      const haystacks: Array<[string, Buffer]> = [
+        ...server.calls.map((call): [string, Buffer] => [
+          `${call.method} ${call.url}`,
+          Buffer.concat([
+            Buffer.from(call.url),
+            Buffer.from(JSON.stringify(call.headers)),
+            call.body ?? Buffer.alloc(0),
+          ]),
+        ]),
+        ['the decoded manifest', manifestBytes],
+        ['the uncompressed archive', gunzipSync(archive)],
+      ];
+      for (const [where, haystack] of haystacks) {
+        for (const [name, secret] of secrets) {
+          expect(haystack.includes(secret), `${name} in ${where}`).toBe(false);
+        }
+      }
     });
   });
 
