@@ -1,0 +1,85 @@
+name: 🐛 Bug report
+description: Report a reproducible bug or regression in the Notti CLI.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Bug report
+
+        **Please fill the following carefully before opening a new issue ❗**
+        *(Your issue may be closed if it doesn't provide the required pieces of information)*
+
+        **Redact signing private keys, REST API keys (`NOTTI_API_KEY`) and any other tokens from everything you paste here.** For security vulnerabilities, do not open an issue: see the [security policy](https://github.com/zeeplabs/zeep-notti-cli/security/policy).
+  - type: checkboxes
+    attributes:
+      label: Before submitting a new issue
+      description: Please perform simple checks first.
+      options:
+        - label: I tested using the latest version of `@notti/cli`, as the bug might be already fixed.
+          required: true
+        - label: I checked for possible duplicate issues, with possible answers.
+          required: true
+        - label: I removed tokens, API keys and private keys from all output in this report.
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Bug summary
+      description: |
+        Provide a clear and concise description of what the bug is.
+        If needed, you can also provide error messages, stack traces, etc. (with secrets redacted).
+    validations:
+      required: true
+  - type: input
+    id: cli-version
+    attributes:
+      label: CLI version
+      description: Output of `notti --version`.
+      placeholder: "x.x.x"
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      description: Output of `node --version`.
+      placeholder: "v22.x.x"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: OS and version.
+      placeholder: "macOS 15, Ubuntu 24.04, Windows 11"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      description: The full command line, with secrets replaced by placeholders.
+      render: shell
+      placeholder: "notti ota release --platform android --runtime-version 1.4.0 --channel production"
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: |
+        You must provide a clear list of steps to reproduce the problem.
+      value: |
+        1. …
+        2. …
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Output
+      description: Relevant CLI output or logs, with secrets redacted.
+      render: shell
+    validations:
+      required: false

@@ -1,5 +1,10 @@
 # @notti/cli
 
+[![Checks](https://github.com/zeeplabs/zeep-notti-cli/actions/workflows/checks.yml/badge.svg)](https://github.com/zeeplabs/zeep-notti-cli/actions/workflows/checks.yml)
+[![npm version](https://img.shields.io/npm/v/@notti/cli.svg)](https://www.npmjs.com/package/@notti/cli)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
 Command line for [Notti](https://zeepnotti.app). It publishes **Live updates**: signed JavaScript bundles that your React Native app downloads and applies on its next cold start, without a store release.
 
 > Status: beta (0.x). The command surface may change between minor versions.
@@ -61,6 +66,10 @@ The command bundles with `react-native bundle` (bare) or `expo export:embed` (Ex
 - The signing private key never leaves your machine. The CLI does not send the key, its path or its contents to Notti, and never prints it.
 - The REST API key is read from `--api-key` or `NOTTI_API_KEY`. The CLI never writes it to disk and never prints it.
 
+## Reporting vulnerabilities
+
+Do not open a public issue. See [SECURITY.md](./SECURITY.md) for how to report privately.
+
 ## Development
 
 ```sh
@@ -76,6 +85,10 @@ node dist/cli.js --version
 
 No code from CodePush, hot-updater, expo-updates or Revopush (including their CLIs) may be copied, adapted or added as a dependency. Every line here is written from scratch. Reading their public documentation for behavior is fine; reading or porting their source is not.
 
+## Contributing
+
+Contributions are welcome. Read [CONTRIBUTING.md](./CONTRIBUTING.md) and the [Code of Conduct](./CODE_OF_CONDUCT.md) first. Releases are described in [RELEASING.md](./RELEASING.md).
+
 ## License
 
-MIT
+[MIT](./LICENSE)
