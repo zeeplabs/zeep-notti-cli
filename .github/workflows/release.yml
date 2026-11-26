@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+
+      # Node 24 on purpose: trusted publishing (OIDC) needs npm >= 11.5.1 to
+      # mint the short-lived token, and the npm bundled with Node 22 is 10.x.
+      # The CLI itself supports Node 20+ (engines); CI runs the checks on 20
+      # and 22.
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          cache: pnpm
+
+      - name: Check npm version supports trusted publishing
+        run: |
+          NPM_VERSION=$(npm --version)
+          node -e "
+            const [major, minor, patch] = '$NPM_VERSION'.split('.').map(Number);
+            if (major < 11 || (major === 11 && minor < 5) || (major === 11 && minor === 5 && patch < 1)) {
+              console.error('npm $NPM_VERSION does not support trusted publishing (need >= 11.5.1)');
+              process.exit(1);
+            }
+          "
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Typecheck, lint and test
+        run: |
+          pnpm typecheck
+          pnpm lint
+          pnpm test
+
+      - name: Build
+        run: pnpm build
+
+      - name: Smoke run
+        run: node dist/cli.js --version
+
+      # The first version is published by hand (see RELEASING.md), and its
+      # tag is pushed afterwards. Skipping an already-published version keeps
+      # that tag (and any re-run) from failing on a duplicate publish, while
+      # still creating the GitHub Release below.
+      - name: Check whether this version is already on npm
+        id: published
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm, skipping publish"
+            echo "already=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # No NPM_TOKEN: @notti/cli must have a Trusted Publisher configured on
+      # npmjs.com (Package settings -> Trusted Publisher) pointing at this
+      # repo + this workflow file (release.yml). Trusted publishing can only
+      # be attached to a package that already exists on the registry, so the
+      # very first publish is done manually from a maintainer's terminal.
+      - name: Publish to npm
+        if: steps.published.outputs.already != 'true'
+        run: npm publish --access public
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Extract release notes from CHANGELOG.md
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          {
+            echo 'body<<CHANGELOG_EOF'
+            node scripts/extract-changelog-section.cjs "$VERSION"
+            echo 'CHANGELOG_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          name: ${{ github.ref_name }}
+          body: ${{ steps.changelog.outputs.body }}

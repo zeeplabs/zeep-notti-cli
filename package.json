@@ -18,12 +18,15 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "fixtures": "pnpm build && node scripts/generate-fixtures.mjs"
+    "fixtures": "pnpm build && node scripts/generate-fixtures.mjs",
+    "prepack": "pnpm build",
+    "release": "release-it --only-version"
   },
   "keywords": [
     "notti",
     "react-native",
     "live-updates",
+    "ota",
     "cli"
   ],
   "repository": {
@@ -41,12 +44,14 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@release-it/conventional-changelog": "^11.0.1",
     "@types/node": "^22.10.0",
     "del-cli": "^7.0.0",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "prettier": "^3.10.1",
+    "release-it": "^20.2.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.74.0",
     "vitest": "^4.1.12"
@@ -58,5 +63,29 @@
     "tabWidth": 2,
     "trailingComma": "es5",
     "useTabs": false
+  },
+  "homepage": "https://github.com/zeeplabs/zeep-notti-cli#readme",
+  "bugs": {
+    "url": "https://github.com/zeeplabs/zeep-notti-cli/issues"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release ${version}",
+      "tagName": "v${version}"
+    },
+    "npm": {
+      "publish": false
+    },
+    "github": {
+      "release": false
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "infile": "CHANGELOG.md",
+        "preset": {
+          "name": "angular"
+        }
+      }
+    }
   }
 }
