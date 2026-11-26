@@ -2,7 +2,7 @@
 
 Command line for [Notti](https://zeepnotti.app). It publishes **Live updates**: signed JavaScript bundles that your React Native app downloads and applies on its next cold start, without a store release.
 
-> Status: in development. Not published to npm yet.
+> Status: beta (0.x). The command surface may change between minor versions.
 
 ## Requirements
 
