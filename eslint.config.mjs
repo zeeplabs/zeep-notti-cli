@@ -14,6 +14,18 @@ export default defineConfig([
     rules: { 'prettier/prettier': 'error' },
   },
   {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        require: 'readonly',
+      },
+    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     files: ['**/*.mjs'],
     languageOptions: {
       globals: { process: 'readonly', console: 'readonly', Buffer: 'readonly' },
