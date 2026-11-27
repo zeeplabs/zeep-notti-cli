@@ -23,7 +23,7 @@ Include, as applicable:
 
 - A description of the vulnerability and its impact.
 - Steps to reproduce (the command line and a minimal project help a lot).
-- The `@notti/cli` version, Node.js version, and operating system.
+- The `notti-cli` version, Node.js version, and operating system.
 
 Do not include signing private keys, REST API keys, or other credentials in
 your report. Redact them from any output you share.
@@ -35,6 +35,6 @@ ask to stay anonymous.
 
 ## Scope
 
-This policy covers the `@notti/cli` package itself. Vulnerabilities in the
+This policy covers the `notti-cli` package itself. Vulnerabilities in the
 Notti backend itself should be reported against the
 [zeep-notti](https://github.com/zeeplabs/zeep-notti) repository instead.

@@ -1,5 +1,5 @@
 {
-  "name": "@notti/cli",
+  "name": "notti-cli",
   "version": "0.1.0",
   "description": "Notti command line: publish signed Live updates for React Native apps",
   "type": "module",

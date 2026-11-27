@@ -85,7 +85,7 @@ jobs:
             echo "already=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # No NPM_TOKEN: @notti/cli must have a Trusted Publisher configured on
+      # No NPM_TOKEN: notti-cli must have a Trusted Publisher configured on
       # npmjs.com (Package settings -> Trusted Publisher) pointing at this
       # repo + this workflow file (release.yml). Trusted publishing can only
       # be attached to a package that already exists on the registry, so the

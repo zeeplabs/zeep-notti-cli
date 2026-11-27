@@ -6,7 +6,7 @@ We want this community to be friendly and respectful to each other. Please follo
 
 ## Development workflow
 
-`@notti/cli` is a Node.js command line written in TypeScript, managed with [pnpm](https://pnpm.io/installation) and tested with [Vitest](https://vitest.dev/). Use the Node.js version in [`.nvmrc`](./.nvmrc) (the package supports Node.js 20 and newer, and CI runs on 20 and 22).
+`notti-cli` is a Node.js command line written in TypeScript, managed with [pnpm](https://pnpm.io/installation) and tested with [Vitest](https://vitest.dev/). Use the Node.js version in [`.nvmrc`](./.nvmrc) (the package supports Node.js 20 and newer, and CI runs on 20 and 22).
 
 Install dependencies:
 

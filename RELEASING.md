@@ -1,4 +1,4 @@
-# Releasing @notti/cli
+# Releasing notti-cli
 
 Releases follow the same flow as `react-native-notti`: `pnpm release` bumps the version, writes `CHANGELOG.md` and creates the `vX.Y.Z` tag. Pushing the tag runs `.github/workflows/release.yml`, which publishes to npm through [trusted publishing (OIDC)](https://docs.npmjs.com/trusted-publishers), with no `NPM_TOKEN`, and then creates the GitHub Release from `CHANGELOG.md`.
 
@@ -9,7 +9,7 @@ Do not publish from your machine after the first release, and do not hand-write 
 1. Be on an up to date `main` with a clean working tree and the checks green.
 2. Run `pnpm release`. release-it computes the next version from the Conventional Commits since the last tag (you can override it at the prompt), prepends the entry to `CHANGELOG.md`, commits `chore: release X.Y.Z`, creates the tag `vX.Y.Z` and pushes both.
 3. The tag triggers `Release`. It checks that the tag matches `package.json`, runs typecheck, lint, tests and the build, publishes with `npm publish --access public` and creates the GitHub Release.
-4. Confirm the new version on npmjs.com and that `npx @notti/cli@latest --version` prints it.
+4. Confirm the new version on npmjs.com and that `npx notti-cli@latest --version` prints it.
 
 The workflow skips the npm step when that exact version is already on the registry, so re-running it (or pushing the tag of a version you published by hand) does not fail on a duplicate publish.
 
@@ -17,7 +17,7 @@ The workflow skips the npm step when that exact version is already on the regist
 
 A Trusted Publisher can only be attached to a package that already exists on npm, so the very first version is published by hand.
 
-1. Be logged in to npm with a maintainer of the `@notti` scope (`npm whoami`), with 2FA enabled.
+1. Be logged in to npm with the `zeep.tech` account (`npm whoami`), with 2FA enabled.
 2. From a clean checkout of `main`, with Node 22 or newer:
 
    ```sh
@@ -40,7 +40,7 @@ A Trusted Publisher can only be attached to a package that already exists on npm
 
 ## Trusted Publisher setup (npmjs.com)
 
-On npmjs.com, open the package `@notti/cli`, then **Settings**, **Trusted Publisher**, choose **GitHub Actions** and fill in:
+On npmjs.com, open the package `notti-cli`, then **Settings**, **Trusted Publisher**, choose **GitHub Actions** and fill in:
 
 | Field | Value |
 | --- | --- |
