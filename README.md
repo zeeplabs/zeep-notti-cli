@@ -1,7 +1,7 @@
-# @notti/cli
+# notti-cli
 
 [![Checks](https://github.com/zeeplabs/zeep-notti-cli/actions/workflows/checks.yml/badge.svg)](https://github.com/zeeplabs/zeep-notti-cli/actions/workflows/checks.yml)
-[![npm version](https://img.shields.io/npm/v/@notti/cli.svg)](https://www.npmjs.com/package/@notti/cli)
+[![npm version](https://img.shields.io/npm/v/notti-cli.svg)](https://www.npmjs.com/package/notti-cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
@@ -37,7 +37,7 @@ The CLI is one of three pieces. It builds, signs and publishes a release from yo
 ## Install
 
 ```sh
-npm install --save-dev @notti/cli
+npm install --save-dev notti-cli
 npx notti --version
 ```
 

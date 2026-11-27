@@ -16,7 +16,7 @@ body:
       label: Before submitting a new issue
       description: Please perform simple checks first.
       options:
-        - label: I tested using the latest version of `@notti/cli`, as the bug might be already fixed.
+        - label: I tested using the latest version of `notti-cli`, as the bug might be already fixed.
           required: true
         - label: I checked for possible duplicate issues, with possible answers.
           required: true
